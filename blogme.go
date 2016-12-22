@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/ghodss/yaml"
 	"github.com/russross/blackfriday"
 	"io/ioutil"
 	"log"
@@ -21,62 +20,6 @@ type Posts []Post
 
 type Site struct {
 	Content Posts
-}
-
-type Config struct {
-	Source   string `json:"source"`
-	Output   string `json:"output"`
-	PostDir  string `json:"PostDir"`
-	Template string `json:"template"`
-}
-
-func LoadConfig(configFile string) *Config {
-	var config Config
-
-	read := true
-	_, err := os.Stat(configFile)
-	if os.IsNotExist(err) {
-		config = Config{}
-		read = false
-	}
-
-	if read {
-		content, err0 := ioutil.ReadFile(configFile)
-		if err0 != nil {
-			panic(err0)
-		}
-
-		err1 := yaml.Unmarshal(content, &config)
-		if err1 != nil {
-			panic(err1)
-		}
-		log.Println(config)
-	}
-
-	if config.Source == "" {
-		config.Source = "content"
-	}
-	if config.Output == "" {
-		config.Output = "output"
-	}
-	if config.PostDir == "" {
-		config.PostDir = "post"
-	}
-	if config.Template == "" {
-		config.Template = "template"
-	}
-
-	_, serr := os.Stat(config.Source)
-	if serr != nil {
-		panic(serr)
-	}
-
-	me := os.MkdirAll(fmt.Sprintf("%s/%s", config.Output, config.PostDir), 0755)
-	if me != nil {
-		panic(me)
-	}
-
-	return &config
 }
 
 func WritePost(config *Config, file_name string) Post {
@@ -142,14 +85,7 @@ func WriteRss(config *Config, site Site) {
 	}
 }
 
-func main() {
-	var configFile string
-	flag.StringVar(&configFile, "config", "config.yml", "Location of config file")
-	flag.Parse()
-
-	config := LoadConfig(configFile)
-	log.Println(config)
-
+func Generate(config *Config) {
 	files, srcErr := ioutil.ReadDir(config.Source)
 	if srcErr != nil {
 		panic(srcErr)
@@ -169,4 +105,14 @@ func main() {
 
 	WriteIndex(config, Site{items})
 	WriteRss(config, Site{items})
+}
+
+func main() {
+	var configFile string
+	flag.StringVar(&configFile, "config", "config.yml", "Location of config file")
+	flag.Parse()
+
+	config := LoadConfig(configFile)
+	log.Println(config)
+	Generate(config)
 }
