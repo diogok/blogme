@@ -3,13 +3,16 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/fsnotify/fsnotify"
 	"github.com/ghodss/yaml"
 	"github.com/russross/blackfriday"
 	"io"
 	"io/ioutil"
 	"log"
+	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"text/template"
 )
 
@@ -48,8 +51,6 @@ func WritePost(config *Config, file_name string) Post {
 		recontent, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.yml", config.Source, name))
 		yaml.Unmarshal(recontent, &post.Properties)
 	}
-
-	log.Println(post)
 
 	file, _ := os.Create(fmt.Sprintf("%s/%s/%s.html", config.Output, config.PostDir, name))
 	postExecuteErr := postTemplate.Execute(file, post)
@@ -123,6 +124,8 @@ func CopyStatic(config *Config) {
 }
 
 func Generate(config *Config) {
+	log.Println("Generating")
+
 	files, srcErr := ioutil.ReadDir(config.Source)
 	if srcErr != nil {
 		panic(srcErr)
@@ -145,12 +148,74 @@ func Generate(config *Config) {
 	CopyStatic(config)
 }
 
+func Watch(config *Config, waiter *sync.WaitGroup) {
+	log.Println("Watching")
+	waiter.Add(1)
+
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					Generate(config)
+				}
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+			}
+		}
+		waiter.Done()
+	}()
+
+	err = watcher.Add(config.Source)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = watcher.Add(config.Template)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func Serve(config *Config, waiter *sync.WaitGroup) {
+	log.Println("Serving at http://localhost:8585")
+	waiter.Add(1)
+	http.ListenAndServe(":8585", http.FileServer(http.Dir(config.Output)))
+	waiter.Done()
+}
+
 func main() {
 	var configFile string
+
+	var generate bool
+	var watch bool
+	var serve bool
+
 	flag.StringVar(&configFile, "config", "config.yml", "Location of config file")
+	flag.BoolVar(&generate, "generate", true, "Command to generate the blog")
+	flag.BoolVar(&watch, "watch", false, "Watch for changes and generate when needed")
+	flag.BoolVar(&serve, "serve", false, "Start a server on generated site")
+
 	flag.Parse()
 
 	config := LoadConfig(configFile)
-	log.Println(config)
-	Generate(config)
+
+	var waiter sync.WaitGroup
+
+	if generate {
+		Generate(config)
+	}
+
+	if watch {
+		Watch(config, &waiter)
+	}
+
+	if serve {
+		Serve(config, &waiter)
+	}
+
+	waiter.Wait()
 }
