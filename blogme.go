@@ -3,18 +3,21 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/ghodss/yaml"
 	"github.com/russross/blackfriday"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
+	"strings"
 	"text/template"
 )
 
 type Post struct {
-	Slug    string
-	Title   string
-	Content string
+	Slug       string
+	Title      string
+	Content    string
+	Properties map[string]string
 }
 
 type Posts []Post
@@ -39,6 +42,14 @@ func WritePost(config *Config, file_name string) Post {
 	html_content := blackfriday.MarkdownBasic(file_content)
 
 	post := Post{Content: string(html_content), Title: name, Slug: name}
+
+	_, err := os.Stat(fmt.Sprintf("%s/%s.yml", config.Source, name))
+	if !os.IsNotExist(err) {
+		recontent, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.yml", config.Source, name))
+		yaml.Unmarshal(recontent, &post.Properties)
+	}
+
+	log.Println(post)
 
 	file, _ := os.Create(fmt.Sprintf("%s/%s/%s.html", config.Output, config.PostDir, name))
 	postExecuteErr := postTemplate.Execute(file, post)
@@ -92,7 +103,7 @@ func CopyDir(from string, to string) {
 	files, _ := ioutil.ReadDir(from)
 	for _, file := range files {
 		file_name := file.Name()
-		if string(file_name[0]) == "." {
+		if strings.HasPrefix(file_name, ".") {
 			continue
 		}
 		if file.IsDir() {
@@ -120,7 +131,7 @@ func Generate(config *Config) {
 	items := Posts{}
 	for _, file := range files {
 		file_name := file.Name()
-		if string(file_name[0]) == "." {
+		if strings.HasPrefix(file_name, ".") || !strings.HasSuffix(file_name, ".md") {
 			continue
 		}
 

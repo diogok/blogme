@@ -9,12 +9,12 @@ import (
 )
 
 type Config struct {
-	Source     string      `json:"source"`
-	Output     string      `json:"output"`
-	PostDir    string      `json:"PostDir"`
-	Template   string      `json:"template"`
-	Static     string      `json:"static"`
-	Properties interface{} `json:"properties"`
+	Source     string            `json:"source"`
+	Output     string            `json:"output"`
+	PostDir    string            `json:"PostDir"`
+	Template   string            `json:"template"`
+	Static     string            `json:"static"`
+	Properties map[string]string `json:"properties"`
 }
 
 func LoadDefaults(config *Config) {
