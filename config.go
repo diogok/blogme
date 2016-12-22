@@ -13,6 +13,7 @@ type Config struct {
 	Output     string      `json:"output"`
 	PostDir    string      `json:"PostDir"`
 	Template   string      `json:"template"`
+	Static     string      `json:"static"`
 	Properties interface{} `json:"properties"`
 }
 
@@ -28,6 +29,9 @@ func LoadDefaults(config *Config) {
 	}
 	if config.Template == "" {
 		config.Template = "template"
+	}
+	if config.Static == "" {
+		config.Static = "static"
 	}
 }
 

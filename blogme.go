@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/russross/blackfriday"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -85,6 +86,31 @@ func WriteRss(config *Config, site Site) {
 	}
 }
 
+func CopyDir(from string, to string) {
+	os.MkdirAll(to, 0755)
+
+	files, _ := ioutil.ReadDir(from)
+	for _, file := range files {
+		file_name := file.Name()
+		if string(file_name[0]) == "." {
+			continue
+		}
+		if file.IsDir() {
+			CopyDir(fmt.Sprintf("%s/%s", from, file_name), fmt.Sprintf("%s/%s", to, file_name))
+		} else {
+			in, _ := os.Open(fmt.Sprintf("%s/%s", from, file_name))
+			out, _ := os.Create(fmt.Sprintf("%s/%s", to, file_name))
+			io.Copy(out, in)
+			in.Close()
+			out.Close()
+		}
+	}
+}
+
+func CopyStatic(config *Config) {
+	CopyDir(fmt.Sprintf("%s/%s", config.Template, config.Static), fmt.Sprintf("%s/%s", config.Output, config.Static))
+}
+
 func Generate(config *Config) {
 	files, srcErr := ioutil.ReadDir(config.Source)
 	if srcErr != nil {
@@ -105,6 +131,7 @@ func Generate(config *Config) {
 
 	WriteIndex(config, Site{items})
 	WriteRss(config, Site{items})
+	CopyStatic(config)
 }
 
 func main() {
