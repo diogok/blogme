@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{.Properties.title}} - {{.Config.Title}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1,minimum-scale=1">
+  <link rel="amphtml" href="{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}-amp.html" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="{{.Properties.title}}" />
+  <meta property="og:description" content="{{.Properties.description}}" />
+  <meta property="og:url" content="{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}.html" />
+  <meta property="og:site_name" content="{{.Config.Title}}" />
+  <!--
+  <meta property="og:image" content="https://s0.wp.com/i/blank.jpg" />
+  -->
+
+  <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "NewsArticle",
+        "headline": "{{.Properties.title}}",
+        "datePublished": "{{.Properties.date}}"
+      }
+  </script>
+
+  <meta name="generator" content="BlogMe" />
+</head>
+<body>
+  <header>
+    <h2><a href="{{.Config.BasePath}}">{{.Config.Title}}</a></h1>
+    <h3>{{.Config.Subtitle}}</h2>
+  </header>
+  <article>
+    <h1>{{.Properties.title}}</h1>
+    {{.Content}}
+  </article>
+  <footer>
+  </footer>
+  <style type="text/css">
+    body {
+      margin: 0 auto;
+      max-width: 1024px;
+    }
+
+    html {
+      font-family: sans-serif; 
+      line-height: 1.15; 
+    }
+
+    article, aside, footer, header, nav, section {
+      display: block;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin: 0.67em 0;
+    }
+
+    pre, code {
+      font-family: monospace, monospace;
+      font-size: 1em; 
+    }
+
+  </style>
+</body>
+</html>

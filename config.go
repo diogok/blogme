@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ghodss/yaml"
 	"io/ioutil"
-	"log"
 	"os"
 )
 
@@ -14,6 +13,9 @@ type Config struct {
 	PostDir    string            `json:"PostDir"`
 	Template   string            `json:"template"`
 	Static     string            `json:"static"`
+	Title      string            `json:"title"`
+	Subtitle   string            `json:"subtitle"`
+	BasePath   string            `json:"basePath"`
 	Properties map[string]string `json:"properties"`
 }
 
@@ -32,6 +34,15 @@ func LoadDefaults(config *Config) {
 	}
 	if config.Static == "" {
 		config.Static = "static"
+	}
+	if config.Title == "" {
+		config.Title = "Title"
+	}
+	if config.Subtitle == "" {
+		config.Subtitle = "Subtitle"
+	}
+	if config.BasePath == "" {
+		config.BasePath = "http://localhost:8585"
 	}
 }
 
@@ -55,7 +66,6 @@ func LoadConfig(configFile string) *Config {
 		if err1 != nil {
 			panic(err1)
 		}
-		log.Println(config)
 	}
 
 	LoadDefaults(&config)

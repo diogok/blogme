@@ -18,33 +18,24 @@ import (
 
 type Post struct {
 	Slug       string
-	Title      string
 	Content    string
 	Properties map[string]string
+	Config     Config
 }
 
 type Posts []Post
 
 type Site struct {
 	Content Posts
+	Config  Config
 }
 
 func WritePost(config *Config, file_name string) Post {
-	postContent, postErr := ioutil.ReadFile(fmt.Sprintf("%s/post.html", config.Template))
-	if postErr != nil {
-		panic(postErr)
-	}
-
-	postTemplate, templateErr := template.New("post").Parse(string(postContent))
-	if templateErr != nil {
-		panic(templateErr)
-	}
-
 	name := (file_name[0 : len(file_name)-3])
 	file_content, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s", config.Source, file_name))
 	html_content := blackfriday.MarkdownBasic(file_content)
 
-	post := Post{Content: string(html_content), Title: name, Slug: name}
+	post := Post{Content: string(html_content), Slug: name, Config: *config}
 
 	_, err := os.Stat(fmt.Sprintf("%s/%s.yml", config.Source, name))
 	if !os.IsNotExist(err) {
@@ -52,49 +43,63 @@ func WritePost(config *Config, file_name string) Post {
 		yaml.Unmarshal(recontent, &post.Properties)
 	}
 
+	postContent, postErr := ioutil.ReadFile(fmt.Sprintf("%s/post.html", config.Template))
+	if postErr != nil {
+		log.Println(postErr)
+		log.Println("Using default")
+		postContent, _ = Asset("defaultTemplate/post.html")
+	}
+
+	postTemplate, templateErr := template.New("post").Parse(string(postContent))
+	if templateErr != nil {
+		log.Println(templateErr)
+	}
+
 	file, _ := os.Create(fmt.Sprintf("%s/%s/%s.html", config.Output, config.PostDir, name))
 	postExecuteErr := postTemplate.Execute(file, post)
 	file.Close()
 	if postExecuteErr != nil {
-		panic(postExecuteErr)
+		log.Println(postExecuteErr)
+	}
+
+	postAmpContent, postAmpErr := ioutil.ReadFile(fmt.Sprintf("%s/post_amp.html", config.Template))
+	if postAmpErr != nil {
+		log.Println("Using AMP default template")
+		postAmpContent, _ = Asset("defaultTemplate/post_amp.html")
+	}
+
+	postAmpTemplate, templateAmpErr := template.New("post").Parse(string(postAmpContent))
+	if templateAmpErr != nil {
+		log.Println(templateAmpErr)
+	}
+
+	ampFile, _ := os.Create(fmt.Sprintf("%s/%s/%s-amp.html", config.Output, config.PostDir, name))
+	postAmpExecuteErr := postAmpTemplate.Execute(ampFile, post)
+	file.Close()
+	if postAmpExecuteErr != nil {
+		log.Println(postAmpExecuteErr)
 	}
 
 	return post
 }
 
-func WriteIndex(config *Config, site Site) {
-	indexContent, indexErr := ioutil.ReadFile(fmt.Sprintf("%s/index.html", config.Template))
+func WriteSite(name string, config *Config, site Site) {
+	indexContent, indexErr := ioutil.ReadFile(fmt.Sprintf("%s/%s", config.Template, name))
 	if indexErr != nil {
-		panic(indexErr)
+		log.Println(indexErr)
+		log.Println("Using default")
+		indexContent, _ = Asset(fmt.Sprintf("defaultTemplate/%s", name))
 	}
 	indexTemplate, indexTemplateErr := template.New("index").Parse(string(indexContent))
 	if indexTemplateErr != nil {
-		panic(indexTemplateErr)
+		log.Println(indexTemplateErr)
 	}
 
-	indexFile, _ := os.Create(fmt.Sprintf("%s/index.html", config.Output))
+	indexFile, _ := os.Create(fmt.Sprintf("%s/%s", config.Output, name))
 	indexExecuteErr := indexTemplate.Execute(indexFile, site)
 	indexFile.Close()
 	if indexExecuteErr != nil {
-		panic(indexExecuteErr)
-	}
-}
-
-func WriteRss(config *Config, site Site) {
-	rssContent, rssErr := ioutil.ReadFile(fmt.Sprintf("%s/rss.xml", config.Template))
-	if rssErr != nil {
-		panic(rssErr)
-	}
-	rssTemplate, rssTemplateErr := template.New("rss").Parse(string(rssContent))
-	if rssTemplateErr != nil {
-		panic(rssTemplateErr)
-	}
-
-	rssFile, _ := os.Create(fmt.Sprintf("%s/rss.xml", config.Output))
-	rssExecuteErr := rssTemplate.Execute(rssFile, site)
-	rssFile.Close()
-	if rssExecuteErr != nil {
-		panic(rssExecuteErr)
+		log.Println(indexExecuteErr)
 	}
 }
 
@@ -128,7 +133,7 @@ func Generate(config *Config) {
 
 	files, srcErr := ioutil.ReadDir(config.Source)
 	if srcErr != nil {
-		panic(srcErr)
+		log.Println(srcErr)
 	}
 
 	items := Posts{}
@@ -143,8 +148,10 @@ func Generate(config *Config) {
 		items = append(items, post)
 	}
 
-	WriteIndex(config, Site{items})
-	WriteRss(config, Site{items})
+	WriteSite("index.html", config, Site{items, *config})
+	WriteSite("rss.xml", config, Site{items, *config})
+	WriteSite("site.xml", config, Site{items, *config})
+
 	CopyStatic(config)
 }
 
@@ -154,7 +161,7 @@ func Watch(config *Config, waiter *sync.WaitGroup) {
 
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	go func() {
 		for {
@@ -172,11 +179,11 @@ func Watch(config *Config, waiter *sync.WaitGroup) {
 
 	err = watcher.Add(config.Source)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	err = watcher.Add(config.Template)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 }
 
@@ -202,6 +209,10 @@ func main() {
 	flag.Parse()
 
 	config := LoadConfig(configFile)
+
+	if serve {
+		config.BasePath = "http://localhost:8585"
+	}
 
 	var waiter sync.WaitGroup
 

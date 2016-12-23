@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{.Config.Title}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+
+  <link rel="alternate" type="application/rss+xml" title="{{.Config.Title}}" href="{{.Config.BasePath}}/rss.xml" />
+
+  <meta name="generator" content="BlogMe" />
+</head>
+<body>
+  <header>
+    <h1><a href="{{.Config.BasePath}}">{{.Config.Title}}</a></h1>
+    <h2>{{.Config.Subtitle}}</h2>
+  </header>
+  {{range .Content}}
+  <article>
+    <h3><a href="{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}.html">{{.Properties.title}}</a></h3>
+    <p><small>{{.Properties.date}}</small></p>
+    <p>{{.Properties.description}}</p>
+  </article>
+  {{end}}
+  <footer>
+  </footer>
+  <style type="text/css">
+    body {
+      margin: 0 auto;
+      max-width: 1024px;
+    }
+
+    html {
+      font-family: sans-serif; 
+      line-height: 1.15; 
+    }
+
+    article, aside, footer, header, nav, section {
+      display: block;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin: 0.67em 0;
+    }
+
+    pre, code {
+      font-family: monospace, monospace;
+      font-size: 1em; 
+    }
+  </style>
+</body>
+</html>

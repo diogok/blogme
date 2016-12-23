@@ -1,4 +1,0 @@
-
-    {{range .Content}}
-    <li><a href="article/{{.Slug}}.html">{{.Title}}</a></li>
-    {{end}}

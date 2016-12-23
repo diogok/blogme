@@ -1,0 +1,4 @@
+
+    {{range .Content}}
+    <li><a href="article/{{.Slug}}.html">{{.Properties.Title}}</a></li>
+    {{end}}

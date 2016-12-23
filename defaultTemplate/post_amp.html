@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html lang="en" amp>
+<head>
+  <meta charset="utf-8">
+  <script async src="https://cdn.ampproject.org/v0.js"></script>
+  <title>{{.Properties.title}} - {{.Config.Title}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+  <link rel="canonical" href="{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}.html" />
+  <script type="application/ld+json">
+      {
+        "@context": "http://schema.org",
+        "@type": "NewsArticle",
+        "headline": "{{.Properties.title}}",
+        "datePublished": "{{.Properties.date}}"
+      }
+  </script>
+
+  <style amp-boilerplate>body{-webkit-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-moz-animation:-amp-start 8s steps(1,end) 0s 1 normal both;-ms-animation:-amp-start 8s steps(1,end) 0s 1 normal both;animation:-amp-start 8s steps(1,end) 0s 1 normal both}@-webkit-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-moz-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-ms-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@-o-keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}@keyframes -amp-start{from{visibility:hidden}to{visibility:visible}}</style><noscript><style amp-boilerplate>body{-webkit-animation:none;-moz-animation:none;-ms-animation:none;animation:none}</style></noscript>
+
+  <style amp-custom>
+    body {
+      margin: 0 auto;
+      max-width: 1024px;
+    }
+
+    html {
+      font-family: sans-serif; 
+      line-height: 1.15; 
+    }
+
+    article, aside, footer, header, nav, section {
+      display: block;
+    }
+
+    h1 {
+      font-size: 2em;
+      margin: 0.67em 0;
+    }
+
+    pre, code {
+      font-family: monospace, monospace;
+      font-size: 1em; 
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h2><a href="{{.Config.BasePath}}">{{.Config.Title}}</a></h1>
+    <h3>{{.Config.Subtitle}}</h2>
+  </header>
+  <article>
+    <h1>{{.Properties.title}}</h1>
+    {{.Content}}
+  </article>
+  <footer>
+  </footer>
+</body>
+</html>
