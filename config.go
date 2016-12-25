@@ -75,7 +75,7 @@ func LoadConfig(configFile string) *Config {
 		panic(serr)
 	}
 
-	me := os.MkdirAll(fmt.Sprintf("%s/%s", config.Output, config.PostDir), 0755)
+	me := os.MkdirAll(fmt.Sprintf("%s%c%s", config.Output, os.PathSeparator, config.PostDir), 0755)
 	if me != nil {
 		panic(me)
 	}

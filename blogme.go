@@ -37,18 +37,18 @@ func (a Posts) Less(i, j int) bool { return a[i].Properties["date"] < a[j].Prope
 
 func WritePost(config *Config, file_name string) Post {
 	name := (file_name[0 : len(file_name)-3])
-	file_content, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s", config.Source, file_name))
+	file_content, _ := ioutil.ReadFile(fmt.Sprintf("%s%c%s", config.Source, os.PathSeparator, file_name))
 	html_content := blackfriday.MarkdownBasic(file_content)
 
 	post := Post{Content: string(html_content), Slug: name, Config: *config}
 
-	_, err := os.Stat(fmt.Sprintf("%s/%s.yml", config.Source, name))
+	_, err := os.Stat(fmt.Sprintf("%s%c%s.yml", config.Source, os.PathSeparator, name))
 	if !os.IsNotExist(err) {
-		recontent, _ := ioutil.ReadFile(fmt.Sprintf("%s/%s.yml", config.Source, name))
+		recontent, _ := ioutil.ReadFile(fmt.Sprintf("%s%c%s.yml", config.Source, os.PathSeparator, name))
 		yaml.Unmarshal(recontent, &post.Properties)
 	}
 
-	postContent, postErr := ioutil.ReadFile(fmt.Sprintf("%s/post.html", config.Template))
+	postContent, postErr := ioutil.ReadFile(fmt.Sprintf("%s%cpost.html", config.Template, os.PathSeparator))
 	if postErr != nil {
 		postContent, _ = Asset("defaultTemplate/post.html")
 	}
@@ -58,13 +58,13 @@ func WritePost(config *Config, file_name string) Post {
 		log.Println(templateErr)
 	}
 
-	file, _ := os.Create(fmt.Sprintf("%s/%s/%s.html", config.Output, config.PostDir, name))
+	file, _ := os.Create(fmt.Sprintf("%s%c%s%c%s.html", config.Output, os.PathSeparator, config.PostDir, os.PathSeparator, name))
 	postExecuteErr := postTemplate.Execute(file, post)
 	file.Close()
 	if postExecuteErr != nil {
 	}
 
-	postAmpContent, postAmpErr := ioutil.ReadFile(fmt.Sprintf("%s/post_amp.html", config.Template))
+	postAmpContent, postAmpErr := ioutil.ReadFile(fmt.Sprintf("%s%cpost_amp.html", config.Template, os.PathSeparator))
 	if postAmpErr != nil {
 		postAmpContent, _ = Asset("defaultTemplate/post_amp.html")
 	}
@@ -74,7 +74,7 @@ func WritePost(config *Config, file_name string) Post {
 		log.Println(templateAmpErr)
 	}
 
-	ampFile, _ := os.Create(fmt.Sprintf("%s/%s/%s-amp.html", config.Output, config.PostDir, name))
+	ampFile, _ := os.Create(fmt.Sprintf("%s%c%s%c%s-amp.html", config.Output, os.PathSeparator, config.PostDir, os.PathSeparator, name))
 	postAmpExecuteErr := postAmpTemplate.Execute(ampFile, post)
 	file.Close()
 	if postAmpExecuteErr != nil {
@@ -85,7 +85,7 @@ func WritePost(config *Config, file_name string) Post {
 }
 
 func WriteSite(name string, config *Config, site Site) {
-	indexContent, indexErr := ioutil.ReadFile(fmt.Sprintf("%s/%s", config.Template, name))
+	indexContent, indexErr := ioutil.ReadFile(fmt.Sprintf("%s%c%s", config.Template, os.PathSeparator, name))
 	if indexErr != nil {
 		indexContent, _ = Asset(fmt.Sprintf("defaultTemplate/%s", name))
 	}
@@ -94,7 +94,7 @@ func WriteSite(name string, config *Config, site Site) {
 		log.Println(indexTemplateErr)
 	}
 
-	indexFile, _ := os.Create(fmt.Sprintf("%s/%s", config.Output, name))
+	indexFile, _ := os.Create(fmt.Sprintf("%s%c%s", config.Output, os.PathSeparator, name))
 	indexExecuteErr := indexTemplate.Execute(indexFile, site)
 	indexFile.Close()
 	if indexExecuteErr != nil {
@@ -112,10 +112,10 @@ func CopyDir(from string, to string) {
 			continue
 		}
 		if file.IsDir() {
-			CopyDir(fmt.Sprintf("%s/%s", from, file_name), fmt.Sprintf("%s/%s", to, file_name))
+			CopyDir(fmt.Sprintf("%s%c%s", from, os.PathSeparator, file_name), fmt.Sprintf("%s%c%s", to, os.PathSeparator, file_name))
 		} else {
-			in, _ := os.Open(fmt.Sprintf("%s/%s", from, file_name))
-			out, _ := os.Create(fmt.Sprintf("%s/%s", to, file_name))
+			in, _ := os.Open(fmt.Sprintf("%s%c%s", from, os.PathSeparator, file_name))
+			out, _ := os.Create(fmt.Sprintf("%s%c%s", to, os.PathSeparator, file_name))
 			io.Copy(out, in)
 			in.Close()
 			out.Close()
@@ -124,7 +124,7 @@ func CopyDir(from string, to string) {
 }
 
 func CopyStatic(config *Config) {
-	CopyDir(fmt.Sprintf("%s/%s", config.Template, config.Static), fmt.Sprintf("%s/%s", config.Output, config.Static))
+	CopyDir(fmt.Sprintf("%s%c%s", config.Template, os.PathSeparator, config.Static), fmt.Sprintf("%s%c%s", config.Output, os.PathSeparator, config.Static))
 }
 
 func Generate(config *Config) {
