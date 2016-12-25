@@ -1,5 +1,11 @@
 all: build
 
+run: assets
+	go run *.go
+
+install: assets
+	go install
+
 deps:
 	go get -u golang.org/x/sys/...
 	go get
