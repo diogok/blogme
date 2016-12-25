@@ -1,4 +1,17 @@
-
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>{{.Config.Title}}</title>
+    <link>{{.Config.BasePath}}</link>
+    <description>{{.Config.Subtitle}}</description>
     {{range .Content}}
-    <li><a href="article/{{.Slug}}.html">{{.Properties.Title}}</a></li>
+    <item>
+      <title><![CDATA[{{.Properties.title}}]]></title>
+      <link>{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}.html</link>
+      <guid>{{.Slug}}</guid>
+      <pubDate>{{.Properties.date}}</pubDate>
+      <description><![CDATA[{{.Content}}]]></description>
+    </item>
     {{end}}
+  </channel>
+</rss>

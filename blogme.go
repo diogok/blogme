@@ -50,8 +50,6 @@ func WritePost(config *Config, file_name string) Post {
 
 	postContent, postErr := ioutil.ReadFile(fmt.Sprintf("%s/post.html", config.Template))
 	if postErr != nil {
-		log.Println(postErr)
-		log.Println("Using default")
 		postContent, _ = Asset("defaultTemplate/post.html")
 	}
 
@@ -64,12 +62,10 @@ func WritePost(config *Config, file_name string) Post {
 	postExecuteErr := postTemplate.Execute(file, post)
 	file.Close()
 	if postExecuteErr != nil {
-		log.Println(postExecuteErr)
 	}
 
 	postAmpContent, postAmpErr := ioutil.ReadFile(fmt.Sprintf("%s/post_amp.html", config.Template))
 	if postAmpErr != nil {
-		log.Println("Using AMP default template")
 		postAmpContent, _ = Asset("defaultTemplate/post_amp.html")
 	}
 
@@ -91,8 +87,6 @@ func WritePost(config *Config, file_name string) Post {
 func WriteSite(name string, config *Config, site Site) {
 	indexContent, indexErr := ioutil.ReadFile(fmt.Sprintf("%s/%s", config.Template, name))
 	if indexErr != nil {
-		log.Println(indexErr)
-		log.Println("Using default")
 		indexContent, _ = Asset(fmt.Sprintf("defaultTemplate/%s", name))
 	}
 	indexTemplate, indexTemplateErr := template.New("index").Parse(string(indexContent))
@@ -157,8 +151,8 @@ func Generate(config *Config) {
 	site := Site{posts, *config}
 
 	WriteSite("index.html", config, site)
+	WriteSite("sitemap.xml", config, site)
 	WriteSite("rss.xml", config, site)
-	WriteSite("site.xml", config, site)
 
 	CopyStatic(config)
 }
