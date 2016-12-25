@@ -16,12 +16,22 @@
   -->
 
   <script type="application/ld+json">
-      {
-        "@context": "http://schema.org",
-        "@type": "NewsArticle",
-        "headline": "{{.Properties.title}}",
-        "datePublished": "{{.Properties.date}}"
-      }
+  {
+    "@context": "http://schema.org",
+    "@type": "NewsArticle",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "{{.Config.BasePath}}/{{.Config.PostDir}}/{{.Slug}}.html"
+    },
+    "headline": "{{.Properties.title}}",
+    "datePublished": "{{.Properties.date}}",
+    "dateModified": "{{.Properties.date}}",
+    "author": {
+      "@type": "Person",
+      "name": "{{.Config.Properties.author}}",
+    },
+    "description": "{{.Properties.description}}"
+  }
   </script>
 
   <meta name="generator" content="BlogMe" />
