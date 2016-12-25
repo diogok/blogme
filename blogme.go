@@ -11,6 +11,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -29,6 +30,10 @@ type Site struct {
 	Content Posts
 	Config  Config
 }
+
+func (a Posts) Len() int           { return len(a) }
+func (a Posts) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a Posts) Less(i, j int) bool { return a[i].Properties["date"] < a[j].Properties["date"] }
 
 func WritePost(config *Config, file_name string) Post {
 	name := (file_name[0 : len(file_name)-3])
@@ -136,7 +141,7 @@ func Generate(config *Config) {
 		log.Println(srcErr)
 	}
 
-	items := Posts{}
+	posts := Posts{}
 	for _, file := range files {
 		file_name := file.Name()
 		if strings.HasPrefix(file_name, ".") || !strings.HasSuffix(file_name, ".md") {
@@ -145,12 +150,15 @@ func Generate(config *Config) {
 
 		post := WritePost(config, file_name)
 
-		items = append(items, post)
+		posts = append(posts, post)
 	}
 
-	WriteSite("index.html", config, Site{items, *config})
-	WriteSite("rss.xml", config, Site{items, *config})
-	WriteSite("site.xml", config, Site{items, *config})
+	sort.Reverse(posts)
+	site := Site{posts, *config}
+
+	WriteSite("index.html", config, site)
+	WriteSite("rss.xml", config, site)
+	WriteSite("site.xml", config, site)
 
 	CopyStatic(config)
 }
